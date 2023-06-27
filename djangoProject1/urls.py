@@ -35,3 +35,4 @@ urlpatterns = [
     path('doctors/<int:doctor_id>/exercises/', ExerciseListByDoctorView.as_view(), name='exercise-list-by-doctor'),
     path('patients/<int:patient_id>/exercises/', ExerciseListByPatientView.as_view(), name='exercise-list-by-patient'),
 ]
+

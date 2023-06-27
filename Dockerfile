@@ -29,12 +29,12 @@ RUN apt-get install -y gcc \
 
 COPY . .
 
-ENV DJANGO_SETTINGS_MODULE=beri_box.settings
+ENV DJANGO_SETTINGS_MODULE=djangoProject1.settings
 ENV LANG=ru_RU.UTF-8
 ENV TZ=Europe/Moscow
 
-ENTRYPOINT sleep 10 && \
-           python3 hospital/manage.py makemigrations && \
-           python3 hospital/manage.py migrate && \
-           python3 hospital/manage.py collectstatic --no-input && \
-            python3 hospital/manage.py runserver 0.0.0.0:8000
+ENTRYPOINT python3 manage.py makemigrations && \
+           python3 manage.py migrate && \
+           python3 manage.py collectstatic --no-input && \
+           python3 manage.py runserver 0.0.0.0:8000
+
