@@ -1,40 +1,19 @@
-FROM python:3.10.11 AS compilation_stage
+FROM python:3.12-slim AS base
+ENV PATH /opt/venv/bin:$PATH
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PIP_DISABLE_PIP_VERSION_CHECK 1
-
+FROM base AS builder
+WORKDIR /opt
 RUN apt-get update && \
-    apt-get install -y curl && \
-    apt-get install -y git
+    apt-get install -y gcc
+RUN python -m venv venv
+RUN pip install poetry
+COPY pyproject.toml poetry.lock ./
+RUN poetry config virtualenvs.create false &&  poetry install --no-cache
 
-RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage \
-    && chmod u+x nvim.appimage \
-    && ./nvim.appimage --appimage-extract \
-    && mv squashfs-root /opt/nvim \
-    && ln -s /opt/nvim/usr/bin/nvim /usr/local/bin/nvim
-
-WORKDIR /django
-COPY requirements.txt .
-RUN python -m venv /opt/venv
-
-RUN pip config set global.trusted-host "pypi.org files.pythonhosted.org pypi.python.org"
-
-ENV PATH="/opt/venv/bin:$PATH"
-RUN apt-get install -y gcc \
- && pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir setuptools wheel \
- && pip install --no-cache-dir -r requirements.txt \
- && rm -rf /var/lib/apt/lists/*
-
-COPY . .
-
-ENV DJANGO_SETTINGS_MODULE=djangoProject1.settings
-ENV LANG=ru_RU.UTF-8
-ENV TZ=Europe/Moscow
-
-ENTRYPOINT python3 manage.py makemigrations && \
-           python3 manage.py migrate && \
-           python3 manage.py collectstatic --no-input && \
-           python3 manage.py runserver 0.0.0.0:8000
-
+FROM base
+WORKDIR /opt
+COPY --from=builder /opt/venv venv
+COPY . /opt
+CMD sleep 100 && python3  main.py
